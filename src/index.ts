@@ -2,10 +2,10 @@ import Koa from 'koa';
 import KoaRouter from 'koa-router';
 import dotenv from 'dotenv';
 
-import { UserController } from './controller';
+import { userController } from './controller';
 import { View } from './views';
 
-import './db';
+// import './db';
 
 const app = new Koa();
 
@@ -16,10 +16,10 @@ router.get('/home', (context, next) => {
 });
 
 // test only
-router.get('/test/:id', UserController.getUser);
+router.get('/test/:id', userController.getUser);
 
 // create
-router.post('/users', console.log);
+router.post('/users', userController.createUser);
 
 // read
 router.get('/users/:id', (context, next) => {
@@ -38,6 +38,8 @@ app.use(router.routes()).use(router.allowedMethods());
 
 app.use(View.render);
 
-app.listen(dotenv.config().parsed?.['PORT'] || 3000, () => {
-  console.log('server start');
+const PORT = dotenv.config().parsed?.['PORT'] || 3000;
+
+app.listen(PORT, () => {
+  console.log(`server start at ${PORT}`);
 });

@@ -1,20 +1,22 @@
-import { PrismaClient } from '@prisma/client';
 import koaRouter from 'koa-router';
 import type { UserInfo } from './types';
 
-export class UserController implements Controller {
-  static dbInstance: PrismaClient;
+import { DBController } from './db';
+import { userInfo } from 'os';
 
-  static db(): PrismaClient {
-    if (UserController.dbInstance) {
-      return UserController.dbInstance;
+class UserController implements Controller {
+  static dbController: DBController;
+
+  private db(): DBController {
+    if (UserController.dbController) {
+      return UserController.dbController;
     }
 
-    UserController.dbInstance = new PrismaClient();
-    return UserController.dbInstance;
+    UserController.dbController = new DBController();
+    return UserController.dbController;
   }
 
-  static async getUser(context: koaRouter.RouterContext, next: any) {
+  getUser = async (context: koaRouter.RouterContext, next: any) => {
     const { method, message, header, url, params, query, request, response } =
       context;
     const { id } = params;
@@ -25,20 +27,31 @@ export class UserController implements Controller {
       {},
     );
 
-    console.log('userId', id);
+    console.log('userId', id, this);
 
-    // const user = await UserController.db().$connect();
-    console.log('db instance', UserController.dbInstance);
+    const user = await this.db().getUser(context, {
+      id,
+    });
+
+    console.log('db user', UserController.dbController, id, user);
 
     response.body = `user: ${id}, query: ${JSON.stringify(query)}`;
 
     await next();
-    return '';
-  }
+  };
 
-  static updateUser(userId: string, userInfo: UserInfo) {
+  createUser = async (context: koaRouter.RouterContext, next: any) => {
+    console.log('create ', context.request);
+    const userInfo: UserInfo = {};
+    const user = await this.db().createUser(context, userInfo);
+    console.log('user create', user);
+
+    await next();
+  };
+
+  updateUser = async (userId: string, userInfo: UserInfo) => {
     console.log('userid', userId, userInfo);
-  }
+  };
 }
 
 abstract class Controller {
@@ -46,3 +59,5 @@ abstract class Controller {
 
   static updateUser: koaRouter.IMiddleware;
 }
+
+export const userController = new UserController();

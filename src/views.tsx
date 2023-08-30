@@ -1,16 +1,18 @@
 import React from 'react';
-import { render } from 'react-dom';
+import { renderToString } from 'react-dom/server';
 
-// function Main() {
-//   return (
-//     <html>
-//       <body>hello world</body>
-//     </html>
-//   );
-// }
+import koaRouter from 'koa-router';
 
-// export class View {
-//   static render(ctx: any) {
-//     ctx.response.body = render(Main);
-//   }
-// }
+function Main() {
+  return (
+    <html>
+      <body>hello world</body>
+    </html>
+  );
+}
+
+export class View {
+  static render(ctx: koaRouter.RouterContext) {
+    ctx.response.body = renderToString(<Main />);
+  }
+}

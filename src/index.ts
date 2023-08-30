@@ -3,6 +3,9 @@ import KoaRouter from 'koa-router';
 import dotenv from 'dotenv';
 
 import { UserController } from './controller';
+import { View } from './views';
+
+import './db';
 
 const app = new Koa();
 
@@ -33,6 +36,8 @@ router.delete('/users/:id', console.log);
 
 app.use(router.routes()).use(router.allowedMethods());
 
-console.log(dotenv.config());
+app.use(View.render);
 
-app.listen(3000);
+app.listen(dotenv.config().parsed?.['PORT'] || 3000, () => {
+  console.log('server start');
+});

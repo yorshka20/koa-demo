@@ -9,10 +9,10 @@ generator client {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @unique @default(uuid())
   name      String
-  email     String   @unique
-  password  String 
+  email     String
+  password  String
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 }

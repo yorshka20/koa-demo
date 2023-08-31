@@ -1,14 +1,13 @@
 {
   "compilerOptions": {
     "target": "es5",
-    // support node esmodule
     "module": "NodeNext",
 
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "lib": ["ESNext"],
 
     "rootDir": "src",
-    "outDir": "lib",
+    "outDir": "dist",
 
     "strict": true,
     "alwaysStrict": true,
@@ -33,5 +32,6 @@
 
     "pretty": true
   },
-  "include": ["typings/**/*", "src/**/*"]
+  "include": ["typings/**/*", "src/**/*"],
+  "exclude": ["tests"]
 }

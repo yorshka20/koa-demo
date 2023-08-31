@@ -4,7 +4,6 @@ import bodyParser from '@koa/bodyparser';
 import dotenv from 'dotenv';
 
 import { userController } from './controller';
-import { View } from './views';
 
 // import './db';
 
@@ -26,15 +25,18 @@ router.post('/users', userController.createUser);
 router.get('/users/:id', userController.getUser);
 
 // update
-router.put('/users/:id', userController.updateUser);
+router.put('/users', userController.updateUser);
 
 // delete
-router.delete('/users/:id', userController.deleteUser);
-
-// for rendering operating page.
-router.get('/operate', View.render);
+router.delete('/users', userController.deleteUser);
 
 app.use(bodyParser());
+
+// log only
+app.use(async (ctx, next) => {
+  console.log('api info', ctx.request.toJSON());
+  await next();
+});
 
 app.use(router.routes()).use(router.allowedMethods());
 

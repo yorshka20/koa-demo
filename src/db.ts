@@ -20,40 +20,12 @@ if (process.env.NODE_ENV === 'production') {
   prisma = global.prisma || new PrismaClient(prismaConfig);
 }
 
-// export async function dbOperate() {
-//   // ... you will write your Prisma Client queries here
-
-//   // don't need to call prisma.$connect explicitly since it will be called lazily when you make a query.
-
-//   try {
-//     const user = await createUser({
-//       name: 'Alice',
-//       email: 'alice@prisma.io',
-//       password: '123456',
-//     });
-//     console.log('user in db', prisma, user);
-//     const allUsers = await prisma.user.findMany();
-//     console.log('findmany result', allUsers);
-//   } catch (e) {
-//     if (e instanceof Prisma.PrismaClientKnownRequestError) {
-//       // The .code property can be accessed in a type-safe manner
-//       if (e.code === 'P2002') {
-//         console.log(
-//           'There is a unique constraint violation, a new user cannot be created with this email',
-//         );
-//       }
-//     }
-//     throw e;
-//   }
-// }
-
 async function readUser(userInfo: UserInfo) {
   const user = await prisma.user.findUnique({
     where: {
       id: userInfo.id,
       name: userInfo.name,
       email: userInfo.email,
-      // password: userInfo.password,
     },
     select: {
       email: true,
@@ -103,17 +75,6 @@ async function deleteUser(userInfo: UserInfo) {
 
   return result;
 }
-
-// dbOperate()
-//   .then(async () => {
-//     console.log('if the db init');
-//     await prisma.$disconnect();
-//   })
-//   .catch(async (e: Prisma.PrismaClientKnownRequestError) => {
-//     console.error('prisma error :=====> ', JSON.stringify(e, null, 2));
-//     await prisma.$disconnect();
-//     process.exit(1);
-//   });
 
 export class DBController {
   constructor() {

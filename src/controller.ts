@@ -53,8 +53,8 @@ class UserController {
   };
 
   deleteUser = async (context: koaRouter.RouterContext, next: any) => {
-    const { id } = context.params;
-    const result = await this.db().deleteUser(context, { id });
+    const { id, name, email }: UserInfo = context.query;
+    const result = await this.db().deleteUser(context, { id, name, email });
     console.log('deleteUser', result);
 
     await next();

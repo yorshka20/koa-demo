@@ -10,8 +10,6 @@
     "rootDir": "src",
     "outDir": "lib",
 
-    "jsx": "react",
-
     "strict": true,
     "alwaysStrict": true,
     "strictFunctionTypes": true,
@@ -25,7 +23,8 @@
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": false,
     //     "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedParameters": false,
+    // "noUnusedParameters": true,
 
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,

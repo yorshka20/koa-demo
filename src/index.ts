@@ -26,10 +26,10 @@ router.post('/users', userController.createUser);
 router.get('/users/:id', userController.getUser);
 
 // update
-router.put('/users/:id', console.log);
+router.put('/users/:id', userController.updateUser);
 
 // delete
-router.delete('/users/:id', console.log);
+router.delete('/users/:id', userController.deleteUser);
 
 // for rendering operating page.
 router.get('/operate', View.render);

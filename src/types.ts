@@ -4,3 +4,5 @@ export interface UserInfo {
   email?: string;
   password?: string;
 }
+
+export type RequestMethod = 'get' | 'post' | 'put' | 'delete';

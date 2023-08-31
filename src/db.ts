@@ -1,16 +1,18 @@
 import { PrismaClient, Prisma } from '@prisma/client';
 import { RouterContext } from 'koa-router';
-import { UserInfo } from './types';
+import type { RequestMethod, UserInfo } from './types';
 
 const prismaConfig: Prisma.PrismaClientOptions = {
   log: ['query', 'info', 'warn', 'error'],
 };
 
+type PrismaLogType = 'query' | 'info' | 'warn' | 'error';
+
 declare global {
   var prisma: PrismaClient | undefined;
 }
 
-let prisma: PrismaClient;
+let prisma: PrismaClient<Prisma.PrismaClientOptions, PrismaLogType>;
 
 if (process.env.NODE_ENV === 'production') {
   prisma = new PrismaClient(prismaConfig);
@@ -94,6 +96,8 @@ async function deleteUser(userInfo: UserInfo) {
   const result = await prisma.user.delete({
     where: {
       id: userInfo.id,
+      name: userInfo.name,
+      email: userInfo.email,
     },
   });
 
@@ -113,20 +117,21 @@ async function deleteUser(userInfo: UserInfo) {
 
 export class DBController {
   constructor() {
+    // self disconnect
     prisma.$on('error', () => {
       prisma.$disconnect();
     });
   }
 
   private async safeOperation(
-    method: string,
+    method: RequestMethod,
     info: UserInfo,
   ): Promise<UserInfo | undefined | null> {
     try {
       switch (method) {
         case 'post':
           return createUser(info);
-        case 'update':
+        case 'put':
           return updateUser(info);
         case 'delete':
           return deleteUser(info);
@@ -156,5 +161,17 @@ export class DBController {
     console.log('createUser', user);
     // ctx.response.body = user?.id;
     return user;
+  }
+
+  async updateUser(ctx: RouterContext, userInfo: UserInfo) {
+    const result = await this.safeOperation('put', userInfo);
+    console.log('update user', result);
+    return result;
+  }
+
+  async deleteUser(ctx: RouterContext, userInfo: UserInfo) {
+    const result = await this.safeOperation('delete', userInfo);
+    console.log('delete user', result);
+    return result;
   }
 }

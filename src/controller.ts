@@ -2,18 +2,21 @@ import koaRouter from 'koa-router';
 import type { UserInfo } from './types';
 
 import { DBController } from './db';
-import { userInfo } from 'os';
 
-class UserController implements Controller {
-  static dbController: DBController;
+class UserController {
+  private dbController: DBController;
+
+  constructor() {
+    this.dbController = new DBController();
+  }
 
   private db(): DBController {
-    if (UserController.dbController) {
-      return UserController.dbController;
+    if (this.dbController) {
+      return this.dbController;
     }
 
-    UserController.dbController = new DBController();
-    return UserController.dbController;
+    this.dbController = new DBController();
+    return this.dbController;
   }
 
   getUser = async (context: koaRouter.RouterContext, next: any) => {
@@ -42,15 +45,20 @@ class UserController implements Controller {
     await next();
   };
 
-  updateUser = async (userId: string, userInfo: UserInfo) => {
-    console.log('userid', userId, userInfo);
+  updateUser = async (context: koaRouter.RouterContext, next: any) => {
+    const userInfo = { ...context.request.body };
+    console.log('updateUser', userInfo);
+
+    await next();
   };
-}
 
-abstract class Controller {
-  static getUser: koaRouter.IMiddleware;
+  deleteUser = async (context: koaRouter.RouterContext, next: any) => {
+    const { id } = context.params;
+    const result = await this.db().deleteUser(context, { id });
+    console.log('deleteUser', result);
 
-  static updateUser: koaRouter.IMiddleware;
+    await next();
+  };
 }
 
 export const userController = new UserController();

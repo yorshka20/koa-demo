@@ -1,6 +1,8 @@
+import jwt from 'jsonwebtoken';
 import koaRouter from 'koa-router';
 import type { UserInfo } from './types';
 
+import { JWT_SECRET } from './constants';
 import { DBController } from './db';
 
 class UserController {
@@ -20,8 +22,7 @@ class UserController {
   }
 
   getUser = async (context: koaRouter.RouterContext, next: any) => {
-    const { params, query } = context;
-    const { id } = params;
+    const { id } = context.params;
 
     console.log('userId', id);
 
@@ -62,3 +63,37 @@ class UserController {
 }
 
 export const userController = new UserController();
+
+export async function loginController(
+  context: koaRouter.RouterContext,
+  next: any,
+) {
+  const { name } = context.request.body;
+  const token = jwt.sign(name, JWT_SECRET);
+
+  // set token in cookies
+  context.cookies.set('token', token, {
+    domain: 'localhost',
+    path: '/',
+    maxAge: 3 * 60 * 60 * 1000,
+    overwrite: true,
+  });
+  context.response.body = token;
+
+  await next();
+}
+
+export async function unauthorizeRequest(
+  context: koaRouter.RouterContext,
+  next: any,
+) {
+  return next().catch((err: any) => {
+    if (401 == err.status) {
+      context.status = 401;
+      context.body =
+        'Protected resource, use Authorization header to get access\n';
+    } else {
+      throw err;
+    }
+  });
+}

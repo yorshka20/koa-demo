@@ -1,4 +1,7 @@
 import type { Prisma } from '@prisma/client';
+import dotenv from 'dotenv';
+
+const config = dotenv.config().parsed || {};
 
 export const prismaConfig: Prisma.PrismaClientOptions = {
   log: [
@@ -20,3 +23,9 @@ export const prismaConfig: Prisma.PrismaClientOptions = {
     },
   ],
 };
+
+// jwt secret
+export const JWT_SECRET = config['JWT_SECRET'];
+
+// server port
+export const PORT = config['PORT'] || 3000;

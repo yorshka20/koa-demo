@@ -1,5 +1,6 @@
 import Koa from 'koa';
 import KoaRouter from 'koa-router';
+import bodyParser from '@koa/bodyparser';
 import dotenv from 'dotenv';
 
 import { userController } from './controller';
@@ -22,11 +23,7 @@ router.get('/test/:id', userController.getUser);
 router.post('/users', userController.createUser);
 
 // read
-router.get('/users/:id', (context, next) => {
-  context.body = 'user';
-  console.log(context);
-  next();
-});
+router.get('/users/:id', userController.getUser);
 
 // update
 router.put('/users/:id', console.log);
@@ -34,9 +31,12 @@ router.put('/users/:id', console.log);
 // delete
 router.delete('/users/:id', console.log);
 
-app.use(router.routes()).use(router.allowedMethods());
+// for rendering operating page.
+router.get('/operate', View.render);
 
-app.use(View.render);
+app.use(bodyParser());
+
+app.use(router.routes()).use(router.allowedMethods());
 
 const PORT = dotenv.config().parsed?.['PORT'] || 3000;
 

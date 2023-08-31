@@ -30,6 +30,7 @@
   ],
   "typings": "./lib/index.d.ts",
   "dependencies": {
+    "@koa/bodyparser": "^5.0.0",
     "@prisma/client": "^5.2.0",
     "dotenv": "^16.3.1",
     "koa": "^2.14.2",

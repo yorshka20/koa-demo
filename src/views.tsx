@@ -1,18 +1,21 @@
 import React from 'react';
-import { renderToString } from 'react-dom/server';
+import { renderToStaticMarkup, renderToString } from 'react-dom/server';
 
 import koaRouter from 'koa-router';
 
 function Main() {
   return (
-    <html>
-      <body>hello world</body>
-    </html>
+    <div>
+      <p>hello world</p>
+      <p style={{ fontSize: 20, color: 'red' }}>this line big</p>
+    </div>
   );
 }
 
 export class View {
-  static render(ctx: koaRouter.RouterContext) {
-    ctx.response.body = renderToString(<Main />);
+  static async render(ctx: koaRouter.RouterContext, next: any) {
+    ctx.response.body = renderToStaticMarkup(<Main />);
+
+    await next();
   }
 }

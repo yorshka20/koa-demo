@@ -17,32 +17,25 @@ class UserController implements Controller {
   }
 
   getUser = async (context: koaRouter.RouterContext, next: any) => {
-    const { method, message, header, url, params, query, request, response } =
-      context;
+    const { params, query } = context;
     const { id } = params;
 
-    console.log('context', context);
-    console.log(
-      '{ method, message, header, url, params, request, response }',
-      {},
-    );
-
-    console.log('userId', id, this);
+    console.log('userId', id);
 
     const user = await this.db().getUser(context, {
       id,
     });
 
-    console.log('db user', UserController.dbController, id, user);
+    console.log('db user', user);
 
-    response.body = `user: ${id}, query: ${JSON.stringify(query)}`;
+    // response.body = `user: ${id}, query: ${JSON.stringify(query)}`;
 
     await next();
   };
 
   createUser = async (context: koaRouter.RouterContext, next: any) => {
-    console.log('create ', context.request);
-    const userInfo: UserInfo = {};
+    console.log('create ', context.request.body, context.request.toJSON());
+    const userInfo: UserInfo = { ...context.request.body };
     const user = await this.db().createUser(context, userInfo);
     console.log('user create', user);
 

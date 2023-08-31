@@ -1,25 +1,21 @@
 import { PrismaClient, Prisma } from '@prisma/client';
 import { RouterContext } from 'koa-router';
 import { UserInfo } from './types';
-// import { prismaConfig } from './constants';
 
 const prismaConfig: Prisma.PrismaClientOptions = {
   log: ['query', 'info', 'warn', 'error'],
 };
 
+declare global {
+  var prisma: PrismaClient | undefined;
+}
+
 let prisma: PrismaClient;
 
 if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient();
+  prisma = new PrismaClient(prismaConfig);
 } else {
-  // @ts-ignore
-  if (!global.prisma) {
-    // @ts-ignore
-    global.prisma = new PrismaClient(prismaConfig);
-  }
-
-  // @ts-ignore
-  prisma = global.prisma;
+  prisma = global.prisma || new PrismaClient(prismaConfig);
 }
 
 // export async function dbOperate() {
@@ -51,7 +47,6 @@ if (process.env.NODE_ENV === 'production') {
 
 async function readUser(userInfo: UserInfo) {
   const user = await prisma.user.findUnique({
-    // @ts-ignore
     where: {
       id: userInfo.id,
       name: userInfo.name,
@@ -116,22 +111,11 @@ async function deleteUser(userInfo: UserInfo) {
 //     process.exit(1);
 //   });
 
-function genName() {
-  return Math.random().toString(36).substring(2, 10);
-}
-
 export class DBController {
-  static instance: DBController;
-  static client: PrismaClient;
-
   constructor() {
-    if (DBController.instance) {
-      return DBController.instance;
-    }
-
-    DBController.instance = this;
-    DBController.client = new PrismaClient(prismaConfig);
-    return DBController.instance;
+    prisma.$on('error', () => {
+      prisma.$disconnect();
+    });
   }
 
   private async safeOperation(
@@ -161,21 +145,16 @@ export class DBController {
   async getUser(ctx: RouterContext, userInfo: UserInfo) {
     const user = await this.safeOperation('get', userInfo);
 
-    if (user) {
-      console.log('getUser', user);
+    console.log('getUser', user);
 
-      ctx.response.body = user.id;
-    }
+    return user;
   }
 
   async createUser(ctx: RouterContext, userInfo: UserInfo) {
-    const user = await this.safeOperation('post', {
-      ...userInfo,
-    });
-    if (user) {
-      console.log('createUser', user);
-    }
+    const user = await this.safeOperation('post', userInfo);
 
-    ctx.response.body = user?.id;
+    console.log('createUser', user);
+    // ctx.response.body = user?.id;
+    return user;
   }
 }

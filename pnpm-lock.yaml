@@ -34,6 +34,9 @@ dependencies:
     version: 5.2.0
 
 devDependencies:
+  '@types/co-body':
+    specifier: ^6.1.0
+    version: 6.1.0
   '@types/jsonwebtoken':
     specifier: ^9.0.2
     version: 9.0.2
@@ -232,6 +235,13 @@ packages:
     dependencies:
       '@types/connect': 3.4.35
       '@types/node': 20.5.7
+    dev: true
+
+  /@types/co-body@6.1.0:
+    resolution: {integrity: sha512-3e0q2jyDAnx/DSZi0z2H0yoZ2wt5yRDZ+P7ymcMObvq0ufWRT4tsajyO+Q1VwVWiv9PRR4W3YEjEzBjeZlhF+w==}
+    dependencies:
+      '@types/node': 20.5.7
+      '@types/qs': 6.9.7
     dev: true
 
   /@types/connect@3.4.35:

@@ -1,3 +1,4 @@
-export enum ErrorCode {
-  P2002 = 'client known request error',
+export enum DBErrorCode {
+  UNIQUE_CONSTRAINT = 'P2002',
+  RECORD_NOT_FOUND = 'P2025',
 }

@@ -1,10 +1,12 @@
 import bodyParser from '@koa/bodyparser';
 import Koa from 'koa';
 import jwt from 'koa-jwt';
+import json from 'koa-json';
 import KoaRouter from 'koa-router';
 
 import { JWT_SECRET, PORT } from './constants';
 import {
+  errorHandler,
   loginController,
   unauthorizeRequest,
   userController,
@@ -28,7 +30,7 @@ router.post('/users', userController.createUser);
 router.get('/users/:id', userController.getUser);
 
 // update
-router.put('/users', userController.updateUser);
+router.put('/users/:id', userController.updateUser);
 
 // delete
 router.delete('/users', userController.deleteUser);
@@ -45,6 +47,10 @@ app.use(
 );
 
 app.use(bodyParser());
+
+app.use(json());
+
+app.use(errorHandler);
 
 // log only
 app.use(async (ctx, next) => {

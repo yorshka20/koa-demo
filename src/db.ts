@@ -1,5 +1,4 @@
-import { PrismaClient, Prisma } from '@prisma/client';
-import { RouterContext } from 'koa-router';
+import { Prisma, PrismaClient } from '@prisma/client';
 import type { RequestMethod, UserInfo } from './types';
 
 const prismaConfig: Prisma.PrismaClientOptions = {
@@ -49,10 +48,10 @@ async function createUser(userInfo: UserInfo) {
   return user;
 }
 
-async function updateUser(userInfo: UserInfo) {
+async function updateUser(userId: string, userInfo: UserInfo) {
   const result = await prisma.user.update({
     where: {
-      id: userInfo.id,
+      id: userId,
     },
     data: {
       name: userInfo.name,
@@ -86,52 +85,49 @@ export class DBController {
 
   private async safeOperation(
     method: RequestMethod,
-    info: UserInfo,
+    info: { userInfo: UserInfo } & { userId?: string },
   ): Promise<UserInfo | undefined | null> {
+    const { userInfo } = info;
     try {
       switch (method) {
         case 'post':
-          return createUser(info);
+          return createUser(userInfo);
         case 'put':
-          return updateUser(info);
+          return updateUser(info.userId!, userInfo);
         case 'delete':
-          return deleteUser(info);
+          return deleteUser(userInfo);
         case 'get':
-          return readUser(info);
+          return readUser(userInfo);
         default:
           return;
       }
     } catch (error) {
-      console.log('error: ===>', error);
-
-      return;
+      throw error;
     }
   }
 
-  async getUser(ctx: RouterContext, userInfo: UserInfo) {
-    const user = await this.safeOperation('get', userInfo);
+  async getUser(userInfo: UserInfo) {
+    const user = await this.safeOperation('get', { userInfo });
 
     console.log('getUser', user);
-
     return user;
   }
 
-  async createUser(ctx: RouterContext, userInfo: UserInfo) {
-    const user = await this.safeOperation('post', userInfo);
+  async createUser(userInfo: UserInfo) {
+    const user = await this.safeOperation('post', { userInfo });
 
     console.log('createUser', user);
-    // ctx.response.body = user?.id;
     return user;
   }
 
-  async updateUser(ctx: RouterContext, userInfo: UserInfo) {
-    const result = await this.safeOperation('put', userInfo);
+  async updateUser(userId: string, userInfo: UserInfo) {
+    const result = await this.safeOperation('put', { userId, userInfo });
     console.log('update user', result);
     return result;
   }
 
-  async deleteUser(ctx: RouterContext, userInfo: UserInfo) {
-    const result = await this.safeOperation('delete', userInfo);
+  async deleteUser(userInfo: UserInfo) {
+    const result = await this.safeOperation('delete', { userInfo });
     console.log('delete user', result);
     return result;
   }

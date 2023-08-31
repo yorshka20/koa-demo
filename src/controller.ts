@@ -1,5 +1,7 @@
+import { Prisma } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import koaRouter from 'koa-router';
+
 import type { UserInfo } from './types';
 
 import { JWT_SECRET } from './constants';
@@ -26,13 +28,16 @@ class UserController {
 
     console.log('userId', id);
 
-    const user = await this.db().getUser(context, {
+    const user = await this.db().getUser({
       id,
     });
 
     console.log('db user', user);
 
-    // response.body = `user: ${id}, query: ${JSON.stringify(query)}`;
+    context.body = {
+      code: 0,
+      data: user,
+    };
 
     await next();
   };
@@ -40,23 +45,42 @@ class UserController {
   createUser = async (context: koaRouter.RouterContext, next: any) => {
     console.log('create ', context.request.body, context.request.toJSON());
     const userInfo: UserInfo = { ...context.request.body };
-    const user = await this.db().createUser(context, userInfo);
+    const user = await this.db().createUser(userInfo);
     console.log('user create', user);
+
+    context.body = {
+      code: 0,
+      data: userInfo,
+    };
 
     await next();
   };
 
   updateUser = async (context: koaRouter.RouterContext, next: any) => {
+    const { id } = context.params;
     const userInfo = { ...context.request.body };
     console.log('updateUser', userInfo);
+
+    const result = await this.db().updateUser(id, userInfo);
+
+    context.body = {
+      code: 0,
+      data: result,
+    };
 
     await next();
   };
 
   deleteUser = async (context: koaRouter.RouterContext, next: any) => {
     const { id, name, email }: UserInfo = context.query;
-    const result = await this.db().deleteUser(context, { id, name, email });
+    const result = await this.db().deleteUser({ id, name, email });
+
     console.log('deleteUser', result);
+
+    context.body = {
+      code: 0,
+      data: result,
+    };
 
     await next();
   };
@@ -78,22 +102,41 @@ export async function loginController(
     maxAge: 3 * 60 * 60 * 1000,
     overwrite: true,
   });
-  context.response.body = token;
+  context.body = { token };
 
   await next();
 }
 
-export async function unauthorizeRequest(
+export function unauthorizeRequest(
   context: koaRouter.RouterContext,
   next: any,
 ) {
   return next().catch((err: any) => {
     if (401 == err.status) {
       context.status = 401;
-      context.body =
-        'Protected resource, use Authorization header to get access\n';
+      context.body = {
+        code: 1,
+        msg: 'Protected resource, use Authorization header to get access',
+      };
     } else {
       throw err;
+    }
+  });
+}
+
+export function errorHandler(context: koaRouter.RouterContext, next: any) {
+  return next().catch((error: any) => {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // The .code property can be accessed in a type-safe manner
+      context.body = {
+        code: 1,
+        msg: error.message,
+      };
+    } else {
+      context.body = {
+        code: 1,
+        msg: 'unknown error',
+      };
     }
   });
 }

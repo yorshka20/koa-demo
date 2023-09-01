@@ -1,5 +1,5 @@
 import { Prisma, PrismaClient } from '@prisma/client';
-import type { RequestMethod, UserInfo } from './types';
+import type { PartialUserInfo, RequestMethod, UserInfo } from './types';
 
 const prismaConfig: Prisma.PrismaClientOptions = {
   log: ['query', 'info', 'warn', 'error'],
@@ -19,24 +19,25 @@ if (process.env.NODE_ENV === 'production') {
   prisma = global.prisma || new PrismaClient(prismaConfig);
 }
 
-async function readUser(userInfo: UserInfo) {
+async function readUser(userInfo: Partial<UserInfo>): Promise<UserInfo | null> {
   const user = await prisma.user.findUnique({
     where: {
       id: userInfo.id,
-      name: userInfo.name,
-      email: userInfo.email,
     },
     select: {
+      id: true,
       email: true,
       name: true,
       password: true,
+      createdAt: true,
+      updatedAt: true,
     },
   });
 
   return user;
 }
 
-async function createUser(userInfo: UserInfo) {
+async function createUser(userInfo: UserInfo): Promise<UserInfo> {
   const user = await prisma.user.create({
     data: {
       name: userInfo.name!,
@@ -48,31 +49,27 @@ async function createUser(userInfo: UserInfo) {
   return user;
 }
 
-async function updateUser(userId: string, userInfo: UserInfo) {
+async function updateUser(userInfo: Partial<UserInfo>): Promise<UserInfo> {
   const result = await prisma.user.update({
     where: {
-      id: userId,
+      id: userInfo.id,
     },
     data: {
-      name: userInfo.name,
-      email: userInfo.email,
-      password: userInfo.password,
+      ...userInfo,
     },
   });
 
   return result;
 }
 
-async function deleteUser(userInfo: UserInfo) {
-  const result = await prisma.user.delete({
+async function deleteUser(userInfo: Partial<UserInfo>): Promise<null> {
+  await prisma.user.delete({
     where: {
       id: userInfo.id,
-      name: userInfo.name,
-      email: userInfo.email,
     },
   });
 
-  return result;
+  return null;
 }
 
 export class DBController {
@@ -83,21 +80,20 @@ export class DBController {
     });
   }
 
-  private async safeOperation(
+  private async safeOperation<T extends PartialUserInfo = UserInfo>(
     method: RequestMethod,
-    info: { userInfo: UserInfo } & { userId?: string },
-  ): Promise<UserInfo | undefined | null> {
-    const { userInfo } = info;
+    info: T,
+  ): Promise<any> {
     try {
       switch (method) {
         case 'post':
-          return createUser(userInfo);
+          return createUser(info as UserInfo);
         case 'put':
-          return updateUser(info.userId!, userInfo);
+          return updateUser(info as Partial<UserInfo>);
         case 'delete':
-          return deleteUser(userInfo);
+          return deleteUser(info as Partial<UserInfo>);
         case 'get':
-          return readUser(userInfo);
+          return readUser(info as Partial<UserInfo>);
         default:
           return;
       }
@@ -106,29 +102,26 @@ export class DBController {
     }
   }
 
-  async getUser(userInfo: UserInfo) {
-    const user = await this.safeOperation('get', { userInfo });
-
-    console.log('getUser', user);
+  async getUser(userInfo: Partial<UserInfo>) {
+    const user = await this.safeOperation<Partial<UserInfo>>('get', userInfo);
     return user;
   }
 
   async createUser(userInfo: UserInfo) {
-    const user = await this.safeOperation('post', { userInfo });
-
-    console.log('createUser', user);
+    const user = await this.safeOperation<UserInfo>('post', userInfo);
     return user;
   }
 
-  async updateUser(userId: string, userInfo: UserInfo) {
-    const result = await this.safeOperation('put', { userId, userInfo });
-    console.log('update user', result);
+  async updateUser(userInfo: Partial<UserInfo>) {
+    const result = await this.safeOperation<Partial<UserInfo>>('put', userInfo);
     return result;
   }
 
-  async deleteUser(userInfo: UserInfo) {
-    const result = await this.safeOperation('delete', { userInfo });
-    console.log('delete user', result);
+  async deleteUser(userInfo: Partial<UserInfo>) {
+    const result = await this.safeOperation<Partial<UserInfo>>(
+      'delete',
+      userInfo,
+    );
     return result;
   }
 }

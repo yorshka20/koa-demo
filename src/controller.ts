@@ -1,13 +1,13 @@
 import { Prisma } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import koaJwt from 'koa-jwt';
+import type { RouterContext } from 'koa-router';
 
-import koaRouter from 'koa-router';
-
-import type { UserInfo } from './types';
-
-import { JWT_SECRET } from './constants';
+import { INVALID_INPUT_ERROR, JWT_SECRET } from './constants';
 import { DBController } from './db';
+import { ErrorCode, ErrorMsg } from './errors';
+import type { RouterNext, UserInfo } from './types';
+import { validateCreateUser, validateUpdateUser } from './utils';
 
 class UserController {
   private dbController: DBController;
@@ -25,62 +25,86 @@ class UserController {
     return this.dbController;
   }
 
-  getUser = async (context: koaRouter.RouterContext, next: any) => {
+  getUser = async (context: RouterContext, next: RouterNext) => {
     const { id } = context.params;
 
-    console.log('userId', id);
+    // input validate
+    if (!id) {
+      context.body = {
+        code: ErrorCode.INVALID_INPUT,
+        msg: ErrorMsg.ID_EMPTY,
+      };
+      throw new Error(INVALID_INPUT_ERROR);
+    }
 
     const user = await this.db().getUser({
       id,
     });
 
-    console.log('db user', user);
-
     context.body = {
-      code: 0,
+      code: ErrorCode.NO_ERROR,
       data: user,
     };
 
     await next();
   };
 
-  createUser = async (context: koaRouter.RouterContext, next: any) => {
-    console.log('create ', context.request.body, context.request.toJSON());
+  createUser = async (context: RouterContext, next: RouterNext) => {
     const userInfo: UserInfo = { ...context.request.body };
+
+    // input validate
+    const { code, msg } = validateCreateUser(userInfo);
+    if (code !== ErrorCode.NO_ERROR) {
+      context.body = { code, msg };
+      throw new Error(INVALID_INPUT_ERROR);
+    }
+
     const user = await this.db().createUser(userInfo);
-    console.log('user create', user);
 
     context.body = {
-      code: 0,
-      data: userInfo,
+      code: ErrorCode.NO_ERROR,
+      data: user,
     };
 
     await next();
   };
 
-  updateUser = async (context: koaRouter.RouterContext, next: any) => {
+  updateUser = async (context: RouterContext, next: RouterNext) => {
     const { id } = context.params;
-    const userInfo = { ...context.request.body };
-    console.log('updateUser', userInfo);
+    const userInfo = { ...context.request.body, id };
 
-    const result = await this.db().updateUser(id, userInfo);
+    // input validate
+    const { code, msg } = validateUpdateUser(userInfo);
+    if (code !== ErrorCode.NO_ERROR) {
+      context.body = { code, msg };
+      throw new Error(INVALID_INPUT_ERROR);
+    }
+
+    const result = await this.db().updateUser(userInfo);
 
     context.body = {
-      code: 0,
+      code: ErrorCode.NO_ERROR,
       data: result,
     };
 
     await next();
   };
 
-  deleteUser = async (context: koaRouter.RouterContext, next: any) => {
-    const { id, name, email }: UserInfo = context.query;
-    const result = await this.db().deleteUser({ id, name, email });
+  deleteUser = async (context: RouterContext, next: RouterNext) => {
+    const { id } = context.query as Record<string, string>;
 
-    console.log('deleteUser', result);
+    if (!id) {
+      context.body = {
+        code: ErrorCode.INVALID_INPUT,
+        msg: ErrorMsg.ID_EMPTY,
+      };
+      throw new Error(INVALID_INPUT_ERROR);
+    }
+
+    const result = await this.db().deleteUser({ id });
 
     context.body = {
-      code: 0,
+      code: ErrorCode.NO_ERROR,
       data: result,
     };
 
@@ -91,8 +115,8 @@ class UserController {
 export const userController = new UserController();
 
 export async function loginController(
-  context: koaRouter.RouterContext,
-  next: any,
+  context: RouterContext,
+  next: RouterNext,
 ) {
   const { name } = context.request.body;
   const token = jwt.sign(name, JWT_SECRET);
@@ -104,49 +128,57 @@ export async function loginController(
     maxAge: 3 * 60 * 60 * 1000,
     overwrite: true,
   });
-  context.body = { token };
+  context.body = {
+    code: ErrorCode.NO_ERROR,
+    data: {
+      token,
+    },
+  };
 
   await next();
 }
 
-export function unauthorizeRequest(
-  context: koaRouter.RouterContext,
-  next: any,
+export async function unauthorizeRequest(
+  context: RouterContext,
+  next: RouterNext,
 ) {
-  return next().catch((err: any) => {
+  try {
+    return await next();
+  } catch (err: any) {
     if (401 == err.status) {
       context.status = 401;
       context.body = {
         code: 1,
-        msg: 'Protected resource, use Authorization header to get access',
+        msg: 'Unauthorized Request.',
       };
     } else {
       throw err;
     }
-  });
+  }
 }
 
-export async function jwtHandler(_: koaRouter.RouterContext, next: any) {
-  koaJwt({
+export async function jwtHandler(context: RouterContext, next: RouterNext) {
+  return koaJwt({
     secret: JWT_SECRET,
     cookie: 'token', // get token from cookie
     debug: true,
-  }).unless({ path: ['/login'] });
-
-  await next();
+  }).unless({ path: ['/login'] })(context, next);
 }
 
-export function errorHandler(context: koaRouter.RouterContext, next: any) {
+export function errorHandler(context: RouterContext, next: RouterNext) {
   return next().catch((error: any) => {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // The .code property can be accessed in a type-safe manner
       context.body = {
-        code: 1,
+        code: ErrorCode.DB_ERROR,
         msg: error.message,
       };
+    } else if (error.message === INVALID_INPUT_ERROR) {
+      // error msg has been set on validator. do nothing here
     } else {
+      console.log('unknown error: ==>', error);
       context.body = {
-        code: 1,
+        code: ErrorCode.UNKNOWN_ERROR,
         msg: 'unknown error',
       };
     }

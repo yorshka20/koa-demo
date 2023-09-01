@@ -23,7 +23,6 @@ we support 6 apis at this project. five for entity CRUD and one for login(to get
 - params:
 
 ```
-//
 loginRequest {
   name String required // any string will be ok
 }
@@ -37,8 +36,7 @@ loginRequest {
 - url: /users
 - params:
 
-```json
-// query
+```
 ?name=xxx&mail=xxx
 ```
 
@@ -74,7 +72,7 @@ createRequest {
 - url: /users
 - params:
 
-```json
+```
 updateRequest {
   id String required
   name String optional
@@ -101,9 +99,9 @@ run `pnpm i` or `yarn` to install the node_modules of this project.
 
 we put important data in `.env` file which is stored locally and will not be uploaded to git.
 
-the `.env` file will be sent **by email**.
+the `.env` file content will be sent **by email**.
 
-after receiving the `.env` file, put it at the root of project like below:
+after receiving the `.env` content, create a `.env` file and paste the content into it, and put it at the root of project like below:
 
 ![env](./images/1.png)
 
@@ -125,15 +123,15 @@ by initializing the db, run:
 pnpm prisma migrate --name init
 ```
 
-> !IMPORTANT: since we have already migrated the verceldb to sync with our prisma scheme, this step can be skipped.
+> !IMPORTANT: since we have already migrated the verceldb to sync with our prisma scheme, this step can be **skipped**.
 
 we use a [vercel PostgreSQL](https://vercel.com/dashboard/stores) in this project. the verceldb is free but limited, so there may be updates if we run out of the resource in verceldb.
 
-Updating will be made by change the `.env` file.
+Updating will be made by change the `.env` file content.
 
 ### start the server
 
-after doing the above procedures, now you can launch the server by running:
+after doing the above procedures, you can launch the server by running:
 
 ```
 pnpm dev
@@ -143,6 +141,18 @@ or
 
 ```
 yarn dev
+```
+
+also you can build it by `pnpm built` and serve it by running
+
+```
+node dist/index.js
+```
+
+or
+
+```
+pnpm serve
 ```
 
 ## test api

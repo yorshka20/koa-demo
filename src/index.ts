@@ -16,6 +16,7 @@ import {
 const app = new Koa();
 const router = new KoaRouter();
 
+// ===> router
 // get jwt
 router.post('/login', loginController);
 
@@ -25,8 +26,8 @@ router.post('/users', userController.createUser);
 // read
 router.get('/users/:id', userController.getUser);
 
-// read all
-router.get('/users', userController.getUserAll);
+// read many
+router.get('/users', userController.getUserMany);
 
 // update
 router.put('/users/:id', userController.updateUser);
@@ -34,16 +35,17 @@ router.put('/users/:id', userController.updateUser);
 // delete
 router.delete('/users/:id', userController.deleteUser);
 
+// ===> middleware
 // logger
 app.use(logger());
 // handle error
 app.use(errorHandler);
-// Custom 401 handling if you don't want to expose koa-jwt errors to users
+// parse the post request body
+app.use(bodyParser());
+// unauthorized request handler
 app.use(unauthorizeRequest);
 // jwt authorization
 app.use(jwtHandler);
-// parse the post request body
-app.use(bodyParser());
 // make json response
 app.use(json());
 

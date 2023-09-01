@@ -75,7 +75,7 @@ class UserController {
    * @param {RouterNext} next
    * @memberof UserController
    */
-  getUserAll = async (context: RouterContext, next: RouterNext) => {
+  getUserMany = async (context: RouterContext, next: RouterNext) => {
     const { name, email } = context.query as { name: string; email: string };
 
     const users = await this.db().getUserMany({ name, email } as UserInfo);

@@ -1,5 +1,7 @@
 import { Prisma } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import koaJwt from 'koa-jwt';
+
 import koaRouter from 'koa-router';
 
 import type { UserInfo } from './types';
@@ -122,6 +124,16 @@ export function unauthorizeRequest(
       throw err;
     }
   });
+}
+
+export async function jwtHandler(_: koaRouter.RouterContext, next: any) {
+  koaJwt({
+    secret: JWT_SECRET,
+    cookie: 'token', // get token from cookie
+    debug: true,
+  }).unless({ path: ['/login'] });
+
+  await next();
 }
 
 export function errorHandler(context: koaRouter.RouterContext, next: any) {

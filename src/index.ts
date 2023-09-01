@@ -1,24 +1,20 @@
 import bodyParser from '@koa/bodyparser';
 import Koa from 'koa';
-import jwt from 'koa-jwt';
 import json from 'koa-json';
 import KoaRouter from 'koa-router';
+import logger from 'koa-logger';
 
-import { JWT_SECRET, PORT } from './constants';
+import { PORT } from './constants';
 import {
   errorHandler,
+  jwtHandler,
   loginController,
   unauthorizeRequest,
   userController,
 } from './controller';
 
 const app = new Koa();
-
 const router = new KoaRouter();
-router.get('/home', (context, next) => {
-  context.body = 'home';
-  next();
-});
 
 // get jwt
 router.post('/login', loginController);
@@ -35,29 +31,20 @@ router.put('/users/:id', userController.updateUser);
 // delete
 router.delete('/users', userController.deleteUser);
 
+// logger
+app.use(logger());
 // Custom 401 handling if you don't want to expose koa-jwt errors to users
 app.use(unauthorizeRequest);
-
-app.use(
-  jwt({
-    secret: JWT_SECRET,
-    cookie: 'token', // get token from cookie
-    debug: true,
-  }).unless({ path: ['/login'] }),
-);
-
+// jwt authorization
+app.use(jwtHandler);
+// parse the post request body
 app.use(bodyParser());
-
+// make json response
 app.use(json());
-
+// handle error
 app.use(errorHandler);
 
-// log only
-app.use(async (ctx, next) => {
-  console.log('api info', ctx.request.toJSON());
-  await next();
-});
-
+// router config
 app.use(router.routes()).use(router.allowedMethods());
 
 app.listen(PORT, () => {

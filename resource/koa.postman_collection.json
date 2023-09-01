@@ -1,0 +1,205 @@
+{
+	"info": {
+		"_postman_id": "616e6bd7-9569-4546-90ff-a61b3dfe8c17",
+		"name": "koa",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18672057"
+	},
+	"item": [
+		{
+			"name": "1. login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"yorshka\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. get users",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eW9yc2hrYQ.YsVUBIro4GDnM66YxdY-zv2mIkRdHEusXUXVprwrb-",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3000/users?email=alice@prisma.io",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"users"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "Alice",
+							"disabled": true
+						},
+						{
+							"key": "email",
+							"value": "alice@prisma.io"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. get user",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eW9yc2hrYQ.YsVUBIro4GDnM66YxdY-zv2mIkRdHEusXUXVprwrb-",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3000/users/:id",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"users",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "asdasd123123"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. create user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": \"111\",\n    \"name\": \"yorssss\",\n    \"email\": \"yosss@asdasdsad\",\n    \"password\": \"123213\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5. update user",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"yorshka2\",\n    \"email\": \"mail@yors.hk\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/users/:id",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"users",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "edd4de3a-dde4-4ac0-81c3-b4858d089767"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6. delete user",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/users?name=22222&email=mail@yors.hk",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"users"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "22222"
+						},
+						{
+							"key": "email",
+							"value": "mail@yors.hk"
+						},
+						{
+							"key": "id",
+							"value": "a172793f-f0a2-4676-8ce5-30de7601e55f",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

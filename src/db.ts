@@ -1,5 +1,6 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import type { PartialUserInfo, RequestMethod, UserInfo } from './types';
+import { userInfo } from 'os';
 
 const prismaConfig: Prisma.PrismaClientOptions = {
   log: ['query', 'info', 'warn', 'error'],
@@ -35,6 +36,16 @@ async function readUser(userInfo: Partial<UserInfo>): Promise<UserInfo | null> {
   });
 
   return user;
+}
+
+async function readUserMany(userInfo: Partial<UserInfo>): Promise<UserInfo[]> {
+  const users = await prisma.user.findMany({
+    where: {
+      ...userInfo,
+    },
+  });
+
+  return users;
 }
 
 async function createUser(userInfo: UserInfo): Promise<UserInfo> {
@@ -80,48 +91,47 @@ export class DBController {
     });
   }
 
-  private async safeOperation<T extends PartialUserInfo = UserInfo>(
-    method: RequestMethod,
-    info: T,
-  ): Promise<any> {
+  private async safeOperation(callback: () => Promise<any>): Promise<any> {
     try {
-      switch (method) {
-        case 'post':
-          return createUser(info as UserInfo);
-        case 'put':
-          return updateUser(info as Partial<UserInfo>);
-        case 'delete':
-          return deleteUser(info as Partial<UserInfo>);
-        case 'get':
-          return readUser(info as Partial<UserInfo>);
-        default:
-          return;
-      }
+      return await callback();
     } catch (error) {
       throw error;
     }
   }
 
   async getUser(userInfo: Partial<UserInfo>) {
-    const user = await this.safeOperation<Partial<UserInfo>>('get', userInfo);
+    const user = await this.safeOperation(() => {
+      return readUser(userInfo);
+    });
     return user;
   }
 
+  async getUserMany(userInfo: Partial<UserInfo>) {
+    const users = await this.safeOperation(() => {
+      return readUserMany(userInfo);
+    });
+
+    return users;
+  }
+
   async createUser(userInfo: UserInfo) {
-    const user = await this.safeOperation<UserInfo>('post', userInfo);
+    const user = await this.safeOperation(() => {
+      return createUser(userInfo);
+    });
     return user;
   }
 
   async updateUser(userInfo: Partial<UserInfo>) {
-    const result = await this.safeOperation<Partial<UserInfo>>('put', userInfo);
+    const result = await this.safeOperation(() => {
+      return updateUser(userInfo);
+    });
     return result;
   }
 
   async deleteUser(userInfo: Partial<UserInfo>) {
-    const result = await this.safeOperation<Partial<UserInfo>>(
-      'delete',
-      userInfo,
-    );
+    const result = await this.safeOperation(() => {
+      return deleteUser(userInfo);
+    });
     return result;
   }
 }

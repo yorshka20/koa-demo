@@ -25,6 +25,9 @@ router.post('/users', userController.createUser);
 // read
 router.get('/users/:id', userController.getUser);
 
+// read all
+router.get('/users', userController.getUserAll);
+
 // update
 router.put('/users/:id', userController.updateUser);
 

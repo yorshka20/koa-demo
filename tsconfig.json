@@ -25,6 +25,8 @@
     "noUnusedParameters": false,
     // "noUnusedParameters": true,
 
+    "esModuleInterop": true,
+
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "downlevelIteration": true,
@@ -33,5 +35,5 @@
     "pretty": true
   },
   "include": ["typings/**/*", "src/**/*"],
-  "exclude": ["tests"]
+  "exclude": ["src/tests"]
 }

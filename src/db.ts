@@ -1,6 +1,5 @@
 import { Prisma, PrismaClient } from '@prisma/client';
-import type { PartialUserInfo, RequestMethod, UserInfo } from './types';
-import { userInfo } from 'os';
+import type { UserInfo } from './types';
 
 const prismaConfig: Prisma.PrismaClientOptions = {
   log: ['query', 'info', 'warn', 'error'],
@@ -8,6 +7,7 @@ const prismaConfig: Prisma.PrismaClientOptions = {
 
 type PrismaLogType = 'query' | 'info' | 'warn' | 'error';
 
+// extend the globalThis to support developing in dev environment
 declare global {
   var prisma: PrismaClient | undefined;
 }
@@ -17,9 +17,18 @@ let prisma: PrismaClient<Prisma.PrismaClientOptions, PrismaLogType>;
 if (process.env.NODE_ENV === 'production') {
   prisma = new PrismaClient(prismaConfig);
 } else {
+  // in dev environment we should reuse the prismaClient instance to avoid db connections bug.
   prisma = global.prisma || new PrismaClient(prismaConfig);
 }
 
+/**
+ * read user info in db.
+ *
+ * - userId is required.
+ *
+ * @param {Partial<UserInfo>} userInfo
+ * @return {*}  {(Promise<UserInfo | null>)}
+ */
 async function readUser(userInfo: Partial<UserInfo>): Promise<UserInfo | null> {
   const user = await prisma.user.findUnique({
     where: {
@@ -38,6 +47,16 @@ async function readUser(userInfo: Partial<UserInfo>): Promise<UserInfo | null> {
   return user;
 }
 
+/**
+ * query multiple users in db.
+ *
+ * supported query conditions:
+ * - name
+ * - email
+ *
+ * @param {Partial<UserInfo>} userInfo
+ * @return {*}  {Promise<UserInfo[]>}
+ */
 async function readUserMany(userInfo: Partial<UserInfo>): Promise<UserInfo[]> {
   const users = await prisma.user.findMany({
     where: {
@@ -48,6 +67,14 @@ async function readUserMany(userInfo: Partial<UserInfo>): Promise<UserInfo[]> {
   return users;
 }
 
+/**
+ * create a user in db.
+ *
+ * - complete userInfo is required except userId. userId is auto-generated.
+ *
+ * @param {UserInfo} userInfo
+ * @return {*}  {Promise<UserInfo>}
+ */
 async function createUser(userInfo: UserInfo): Promise<UserInfo> {
   const user = await prisma.user.create({
     data: {
@@ -60,6 +87,14 @@ async function createUser(userInfo: UserInfo): Promise<UserInfo> {
   return user;
 }
 
+/**
+ * update userInfo in db.
+ *
+ * - userId is required.
+ *
+ * @param {Partial<UserInfo>} userInfo
+ * @return {*}  {Promise<UserInfo>}
+ */
 async function updateUser(userInfo: Partial<UserInfo>): Promise<UserInfo> {
   const result = await prisma.user.update({
     where: {
@@ -73,6 +108,14 @@ async function updateUser(userInfo: Partial<UserInfo>): Promise<UserInfo> {
   return result;
 }
 
+/**
+ * delete a user in db.
+ *
+ * - userId is required.
+ *
+ * @param {Partial<UserInfo>} userInfo
+ * @return {*}  {Promise<null>}
+ */
 async function deleteUser(userInfo: Partial<UserInfo>): Promise<null> {
   await prisma.user.delete({
     where: {
@@ -83,6 +126,16 @@ async function deleteUser(userInfo: Partial<UserInfo>): Promise<null> {
   return null;
 }
 
+/**
+ * db controller
+ *
+ * - handle all db operations
+ * - disconnect itself when error occurs.
+ * - connection will be made automatically when making operations by prisma.
+ *
+ * @export
+ * @class DBController
+ */
 export class DBController {
   constructor() {
     // self disconnect
@@ -91,6 +144,16 @@ export class DBController {
     });
   }
 
+  /**
+   * execute callback in try catch.
+   *
+   * db error will be thrown out.
+   *
+   * @private
+   * @param {() => Promise<any>} callback
+   * @return {*}  {Promise<any>}
+   * @memberof DBController
+   */
   private async safeOperation(callback: () => Promise<any>): Promise<any> {
     try {
       return await callback();

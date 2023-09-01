@@ -32,7 +32,7 @@ router.get('/users', userController.getUserAll);
 router.put('/users/:id', userController.updateUser);
 
 // delete
-router.delete('/users', userController.deleteUser);
+router.delete('/users/:id', userController.deleteUser);
 
 // logger
 app.use(logger());

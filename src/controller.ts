@@ -9,6 +9,14 @@ import { ErrorCode, ErrorMsg } from './errors';
 import type { RouterNext, UserInfo } from './types';
 import { validateCreateUser, validateUpdateUser } from './utils';
 
+/**
+ * user controller
+ *
+ * - combined user operations
+ * - handle all user-related requests
+ *
+ * @class UserController
+ */
 class UserController {
   private dbController: DBController;
 
@@ -25,6 +33,13 @@ class UserController {
     return this.dbController;
   }
 
+  /**
+   * get single user info by userId
+   *
+   * @param {RouterContext} context
+   * @param {RouterNext} next
+   * @memberof UserController
+   */
   getUser = async (context: RouterContext, next: RouterNext) => {
     const { id } = context.params;
 
@@ -49,6 +64,17 @@ class UserController {
     await next();
   };
 
+  /**
+   * query multiple users by conditions
+   *
+   * supported query conditions:
+   * - name
+   * - email
+   *
+   * @param {RouterContext} context
+   * @param {RouterNext} next
+   * @memberof UserController
+   */
   getUserAll = async (context: RouterContext, next: RouterNext) => {
     const { name, email } = context.query as { name: string; email: string };
 
@@ -62,6 +88,13 @@ class UserController {
     await next();
   };
 
+  /**
+   * create a user
+   *
+   * @param {RouterContext} context
+   * @param {RouterNext} next
+   * @memberof UserController
+   */
   createUser = async (context: RouterContext, next: RouterNext) => {
     const userInfo: UserInfo = { ...context.request.body };
 
@@ -82,6 +115,17 @@ class UserController {
     await next();
   };
 
+  /**
+   * update user info
+   *
+   * - userId is required
+   * - name, email and password is optional
+   * - userId can not be updated
+   *
+   * @param {RouterContext} context
+   * @param {RouterNext} next
+   * @memberof UserController
+   */
   updateUser = async (context: RouterContext, next: RouterNext) => {
     const { id } = context.params;
     const userInfo = { ...context.request.body, id };
@@ -103,8 +147,16 @@ class UserController {
     await next();
   };
 
+  /**
+   * delete a user
+   *
+   *
+   * @param {RouterContext} context
+   * @param {RouterNext} next
+   * @memberof UserController
+   */
   deleteUser = async (context: RouterContext, next: RouterNext) => {
-    const { id } = context.query as Record<string, string>;
+    const { id } = context.params;
 
     if (!id) {
       context.body = {
@@ -127,6 +179,15 @@ class UserController {
 
 export const userController = new UserController();
 
+/**
+ * login api controller
+ *
+ * - create a jwt token for login user.
+ *
+ * @export
+ * @param {RouterContext} context
+ * @param {RouterNext} next
+ */
 export async function loginController(
   context: RouterContext,
   next: RouterNext,
@@ -141,6 +202,7 @@ export async function loginController(
     maxAge: 3 * 60 * 60 * 1000,
     overwrite: true,
   });
+
   context.body = {
     code: ErrorCode.NO_ERROR,
     data: {
@@ -151,6 +213,16 @@ export async function loginController(
   await next();
 }
 
+/**
+ * handle unauthorized request
+ *
+ * - this middleware will reject requests without jwt token and return 401 status.
+ *
+ * @export
+ * @param {RouterContext} context
+ * @param {RouterNext} next
+ * @return {*}
+ */
 export async function unauthorizeRequest(
   context: RouterContext,
   next: RouterNext,
@@ -170,6 +242,18 @@ export async function unauthorizeRequest(
   }
 }
 
+/**
+ * jwt authorize middleware
+ *
+ * - this middleware will check the jwt token from request.
+ * - `login` request will be not checked
+ * - it extract the token from cookie. so you don't need to use a `Authorization` header.
+ *
+ * @export
+ * @param {RouterContext} context
+ * @param {RouterNext} next
+ * @return {*}
+ */
 export async function jwtHandler(context: RouterContext, next: RouterNext) {
   return koaJwt({
     secret: JWT_SECRET,
@@ -178,6 +262,16 @@ export async function jwtHandler(context: RouterContext, next: RouterNext) {
   }).unless({ path: ['/login'] })(context, next);
 }
 
+/**
+ * error handler
+ *
+ * - this middleware will handle the error thrown from other middlewares.
+ *
+ * @export
+ * @param {RouterContext} context
+ * @param {RouterNext} next
+ * @return {*}
+ */
 export function errorHandler(context: RouterContext, next: RouterNext) {
   return next().catch((error: any) => {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {

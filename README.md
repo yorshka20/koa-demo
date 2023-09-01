@@ -1,6 +1,6 @@
 # Koa RESTful API demo
 
-this project is a implementing demo which meets the requirement described in `REQUIREMENT.md`.
+this project is a implementation demo which meets the requirement described in `REQUIREMENT.md`.
 
 ## Introduction
 
@@ -109,7 +109,7 @@ after receiving the `.env` file, put it at the root of project like below:
 
 ### initialize db
 
-we use [prisma](https://www.prisma.io/docs/getting-started) as the ORM lib in this project. before running your server, you should generate the `prismaClient` and `initialize the db`.
+we use [prisma](https://www.prisma.io/docs/getting-started) as the ORM lib in this project. before running your server, you should generate the `prismaClient` and `initialize the db(optional)`.
 
 by generating prismaClient, run:
 
@@ -124,6 +124,8 @@ by initializing the db, run:
 ```
 pnpm prisma migrate --name init
 ```
+
+> !IMPORTANT: since we have already migrated the verceldb to sync with our prisma scheme, this step can be skipped.
 
 we use a [vercel PostgreSQL](https://vercel.com/dashboard/stores) in this project. the verceldb is free but limited, so there may be updates if we run out of the resource in verceldb.
 

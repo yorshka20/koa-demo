@@ -4,9 +4,13 @@ export enum PrismaErrorCode {
 }
 
 export enum ErrorCode {
+  /* normal state. with code 0 */
   NO_ERROR,
+  /* unrecognized error */
   UNKNOWN_ERROR,
+  /* error occurred in db */
   DB_ERROR,
+  /* request input invalid */
   INVALID_INPUT,
 }
 

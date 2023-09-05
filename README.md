@@ -99,7 +99,7 @@ run `pnpm i` or `yarn` to install the node_modules of this project.
 
 we put important data in `.env` file which is stored locally and will not be uploaded to git.
 
-the `.env` file content will be sent **by email**.
+> the .env file is not provided in this public repository.
 
 after receiving the `.env` content, create a `.env` file and paste the content into it, and put it at the root of project like below:
 
